@@ -1,0 +1,6 @@
+.venv
+train
+logs
+.idea
+best_model_100000.zip
+__pycache__/
