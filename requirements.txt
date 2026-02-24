@@ -5,3 +5,4 @@ gymnasium==0.29.1
 stable_baselines3==2.3.2
 shimmy
 opencv-python
+numpy==1.26.4
