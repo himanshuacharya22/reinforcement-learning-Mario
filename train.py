@@ -103,7 +103,11 @@ def main():
     train_env = make_env(cfg)
 
     logger.info("Building evaluation environment...")
-    eval_env = make_env(cfg)
+    import copy
+    eval_cfg = copy.deepcopy(cfg)
+    eval_cfg.env.num_envs = 1
+    eval_cfg.env.use_subprocess = False
+    eval_env = make_env(eval_cfg)
 
     # ── Build or load model ─────────────────────────────────────────────
     lr = cfg.ppo.learning_rate

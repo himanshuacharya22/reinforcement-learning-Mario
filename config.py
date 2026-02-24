@@ -47,8 +47,8 @@ class EnvConfig:
     frame_skip: int = 4
     frame_size: int = 84
     frame_stack: int = 4
-    num_envs: int = 1                       # Number of parallel envs
-    use_subprocess: bool = False            # Use SubprocVecEnv vs DummyVecEnv
+    num_envs: int = 8                       # Number of parallel envs
+    use_subprocess: bool = True             # Use SubprocVecEnv vs DummyVecEnv
 
 
 @dataclass
