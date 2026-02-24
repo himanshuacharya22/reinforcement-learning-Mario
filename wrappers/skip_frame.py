@@ -29,10 +29,9 @@ class SkipFrame(gym.Wrapper):
             obs, reward, done, info = self.env.step(action)
             total_reward += reward
 
-            # Store in the rolling 2-frame buffer
-            if i >= self._skip - 2:
-                idx = i - (self._skip - 2)
-                self._obs_buffer[idx] = obs
+            # Shift buffer and store newest observation
+            self._obs_buffer[0] = self._obs_buffer[1]
+            self._obs_buffer[1] = obs
 
             if done:
                 break
@@ -42,5 +41,7 @@ class SkipFrame(gym.Wrapper):
         return max_frame, total_reward, done, info
 
     def reset(self, **kwargs):
-        self._obs_buffer.fill(0)
-        return self.env.reset(**kwargs)
+        obs = self.env.reset(**kwargs)
+        self._obs_buffer[0] = obs
+        self._obs_buffer[1] = obs
+        return obs

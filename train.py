@@ -178,7 +178,7 @@ def main():
         logger.warning("Training interrupted by user.")
     finally:
         # Save final model
-        final_path = cfg.train.model_dir / "final_model"
+        final_path = cfg.train.model_dir / "final_model_ki"
         model.save(str(final_path))
         logger.info("Final model saved → %s", final_path)
 

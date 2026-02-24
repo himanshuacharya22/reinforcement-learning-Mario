@@ -1,9 +1,9 @@
 .venv
 train/
 logs/
-
+models/
 videos/
 .idea
 __pycache__/
-
+*.zip
 *.log

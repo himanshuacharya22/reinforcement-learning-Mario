@@ -24,28 +24,34 @@ class MarioRewardWrapper(gym.Wrapper):
         self.cfg = reward_cfg or RewardConfig()
 
         # State tracking
-        self._prev_x_pos: int = 0
+        self._prev_x_pos: int | None = None
         self._prev_score: int = 0
+        self._prev_life: int = 2
         self._idle_steps: int = 0
 
     def reset(self, **kwargs):
         obs = self.env.reset(**kwargs)
-        self._prev_x_pos = 0
+        self._prev_x_pos = None
         self._prev_score = 0
+        self._prev_life = 2
         self._idle_steps = 0
         return obs
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
-        reward = self._shape_reward(reward, done, info)
+        reward, done = self._shape_reward_and_done(reward, done, info)
         return obs, reward, done, info
 
-    def _shape_reward(self, base_reward: float, done: bool, info: dict) -> float:
-        """Compute the shaped reward from multiple game-state signals."""
+    def _shape_reward_and_done(self, base_reward: float, done: bool, info: dict) -> tuple[float, bool]:
+        """Compute the shaped reward from multiple game-state signals and handle episodic life."""
         shaped = 0.0
 
-        current_x = info.get("x_pos", self._prev_x_pos)
+        current_x = info.get("x_pos", 0)
         current_score = info.get("score", self._prev_score)
+        current_life = info.get("life", self._prev_life)
+
+        if self._prev_x_pos is None:
+            self._prev_x_pos = current_x
 
         # 1. Forward progress — proportional to distance gained
         x_delta = current_x - self._prev_x_pos
@@ -68,14 +74,20 @@ class MarioRewardWrapper(gym.Wrapper):
             self._idle_steps = 0
 
         # 5. Death / level completion
+        # Treat losing a life as a terminal state (Episodic Life)
+        if current_life < self._prev_life:
+            done = True
+            shaped += self.cfg.death_penalty
+
         if done:
             if info.get("flag_get", False):
                 shaped += self.cfg.level_clear_bonus
-            elif info.get("life", 2) < 2:
+            elif info.get("time", 0) == 0:
                 shaped += self.cfg.death_penalty
 
         # Update state for next step
         self._prev_x_pos = current_x
         self._prev_score = current_score
+        self._prev_life = current_life
 
-        return np.float32(shaped)
+        return np.float32(shaped), done
