@@ -33,8 +33,10 @@ class TrainCallback(BaseCallback):
         super().__init__(verbose)
         self.save_dir = Path(save_dir)
         self.checkpoint_freq = checkpoint_freq
+        self.checkpoint_freq = checkpoint_freq
         self.best_mean_reward = -np.inf
         self._episode_rewards: list[float] = []
+        self._rollout_count = 0
 
     def _init_callback(self) -> None:
         self.save_dir.mkdir(parents=True, exist_ok=True)
@@ -81,3 +83,15 @@ class TrainCallback(BaseCallback):
                 )
 
         return True  # Continue training
+
+    def _on_rollout_end(self) -> None:
+        """Triggered at the end of each iteration/rollout buffer collection."""
+        self._rollout_count += 1
+        if self._rollout_count % 5 == 0:
+            final_path = self.save_dir / "final_model"
+            self.model.save(str(final_path))
+            logger.info(
+                "Auto-saved %s.zip at iteration %d", 
+                final_path.name, 
+                self._rollout_count
+            )
