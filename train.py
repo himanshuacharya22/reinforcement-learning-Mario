@@ -114,6 +114,12 @@ def main():
     if cfg.ppo.use_linear_lr_decay:
         lr = get_linear_fn(cfg.ppo.learning_rate, 0.0, 1.0)
 
+    if not cfg.train.resume_from:
+        auto_resume_path = cfg.train.model_dir / "final_model.zip"
+        if auto_resume_path.exists():
+            cfg.train.resume_from = str(auto_resume_path)
+            logger.info("Auto-detected existing model → %s", auto_resume_path)
+
     if cfg.train.resume_from:
         logger.info("Resuming from checkpoint: %s", cfg.train.resume_from)
         model = PPO.load(
